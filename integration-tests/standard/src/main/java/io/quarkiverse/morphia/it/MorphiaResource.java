@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Default;
 import jakarta.inject.Inject;
@@ -41,8 +42,10 @@ import dev.morphia.Datastore;
 import dev.morphia.aggregation.stages.Lookup;
 import dev.morphia.aggregation.stages.Unwind;
 import dev.morphia.mapping.codec.pojo.EntityModel;
+import io.quarkiverse.morphia.DatastoreFactory;
 import io.quarkiverse.morphia.it.models.Author;
 import io.quarkiverse.morphia.it.models.Book;
+import io.quarkiverse.morphia.it.models.EntityWithDisc;
 import io.quarkus.mongodb.MongoClientName;
 
 @Path("/morphia")
@@ -200,4 +203,50 @@ public class MorphiaResource {
         return (Document) document.get("options");
     }
 
+    @Inject
+    DatastoreFactory datastoreFactory;
+
+    Datastore datastore1;
+
+    Datastore datastore2;
+
+    @PostConstruct
+    public void init() {
+        datastore1 = datastoreFactory.createDatastore("database1");
+        datastore2 = datastoreFactory.createDatastore("database2");
+    }
+
+    @POST
+    @Path("test1")
+    @Consumes("application/json")
+    @Produces("application/text")
+    public Response addAuthor(Author author) {
+        datastore1.save(author);
+        if (datastore2.find(Author.class).stream().iterator().hasNext()) {
+            return Response.serverError().build();
+        }
+        return Response.ok().build();
+    }
+
+    @GET
+    @Path("test2")
+    @Consumes("application/json")
+    @Produces("application/text")
+    public Response getAuthor() {
+        Author author = datastore1.find(Author.class).first();
+        if (author != null) {
+            return Response.ok(author.name).build();
+        }
+        return Response.serverError().build();
+    }
+
+    @POST
+    @Path("test3")
+    @Consumes("application/json")
+    @Produces("application/text")
+    public Response testDisc(EntityWithDisc entity) {
+        datastore.save(entity);
+        datastore.find(EntityWithDisc.class).iterator().toList();
+        return Response.ok().build();
+    }
 }

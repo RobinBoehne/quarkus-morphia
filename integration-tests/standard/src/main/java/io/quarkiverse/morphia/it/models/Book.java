@@ -15,7 +15,7 @@ import dev.morphia.annotations.Reference;
 import dev.morphia.annotations.Validation;
 import dev.morphia.utils.IndexType;
 
-@Entity(value = "books")
+@Entity(value = "books", useDiscriminator = false)
 @Validation("{ title: { $exists:  true } }")
 @Indexes(value = @Index(fields = @Field(value = "title", type = IndexType.TEXT)))
 public class Book {

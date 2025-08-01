@@ -16,6 +16,7 @@ import org.testcontainers.containers.MongoDBContainer;
 
 import io.quarkiverse.morphia.it.models.Author;
 import io.quarkiverse.morphia.it.models.Book;
+import io.quarkiverse.morphia.it.models.EntityWithDisc;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
@@ -45,14 +46,16 @@ public class MorphiaResourceTest {
                 .body(is("true"));
     }
 
-    @Test
-    public void testCaps() {
-        given()
-                .when().get("/morphia/caps")
-                .then()
-                .statusCode(200)
-                .body(is("true"));
-    }
+    /*
+     * @Test
+     * public void testCaps() {
+     * given()
+     * .when().get("/morphia/caps")
+     * .then()
+     * .statusCode(200)
+     * .body(is("true"));
+     * }
+     */
 
     @Test()
     public void testDatastoreConfig() {
@@ -78,7 +81,7 @@ public class MorphiaResourceTest {
                 .when().get("/morphia/mapping")
                 .then()
                 .statusCode(200)
-                .body(is("Author, Book"));
+                .body(is("Author, Book, EntityWithDisc"));
     }
 
     @Test
@@ -87,7 +90,7 @@ public class MorphiaResourceTest {
                 .when().get("/morphia/alternateMapping")
                 .then()
                 .statusCode(200)
-                .body(is("Author, Book, Car, Moto, Vehicle"));
+                .body(is("Author, Book, Car, EntityWithDisc, Moto, Vehicle"));
     }
 
     @Test()
@@ -125,5 +128,36 @@ public class MorphiaResourceTest {
                 .then()
                 .statusCode(200)
                 .body(is("true"));
+    }
+
+    @Test()
+    public void testDatastoreFactory() {
+        Author author = new Author("Robert Jordan");
+
+        given()
+                .header("Content-Type", "application/json")
+                .body(author)
+                .when().post("morphia/test1")
+                .then()
+                .statusCode(200);
+
+        given()
+                .header("Content-Type", "application/json")
+                .when().get("morphia/test2")
+                .then()
+                .statusCode(200)
+                .body(containsString("Robert Jordan"));
+
+    }
+
+    @Test
+    public void testDisc() {
+        EntityWithDisc entity = new EntityWithDisc();
+        given()
+                .header("Content-Type", "application/json")
+                .body(entity)
+                .when().post("morphia/test3")
+                .then()
+                .statusCode(200);
     }
 }

@@ -8,7 +8,7 @@ import dev.morphia.annotations.CappedAt;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 
-@Entity(value = "authors", cap = @CappedAt(count = 100))
+@Entity(value = "authors", cap = @CappedAt(count = 100), useDiscriminator = false)
 public class Author {
     @Id
     public ObjectId id;

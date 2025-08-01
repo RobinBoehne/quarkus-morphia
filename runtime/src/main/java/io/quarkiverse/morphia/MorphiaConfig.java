@@ -6,16 +6,18 @@ import java.util.Map;
 
 import io.quarkiverse.morphia.runtime.MapperConfig;
 import io.quarkus.mongodb.runtime.MongoClientBeanUtil;
-import io.quarkus.runtime.annotations.ConfigItem;
 import io.quarkus.runtime.annotations.ConfigRoot;
+import io.smallrye.config.ConfigMapping;
+import io.smallrye.config.WithParentName;
 
-@ConfigRoot(name = "morphia", phase = RUN_TIME)
-public class MorphiaConfig {
+@ConfigMapping(prefix = "quarkus.morphia")
+@ConfigRoot(phase = RUN_TIME)
+public interface MorphiaConfig {
     /**
      * The default Mapper configuration.
      */
-    @ConfigItem(name = ConfigItem.PARENT)
-    public MapperConfig defaultMapperConfig;
+    @WithParentName
+    MapperConfig defaultMapperConfig();
 
     /**
      * Configures additional {@code @Mapper} configurations.
@@ -25,8 +27,8 @@ public class MorphiaConfig {
      *
      * <pre>
      * {@code
-     * quarkus.morphia.cluster1.discriminatorKey = className
-     * quarkus.morphia.cluster2.discriminatorKey = _type
+     * quarkus.morphia.mapper-configs.cluster1.discriminatorKey = className
+     * quarkus.morphia.mapper-configs.cluster2.discriminatorKey = _type
      * }
      * </pre>
      *
@@ -41,12 +43,11 @@ public class MorphiaConfig {
      * }
      * </pre>
      */
-    @ConfigItem(name = ConfigItem.PARENT)
-    public Map<String, MapperConfig> mapperConfigs;
+    Map<String, MapperConfig> mapperConfigs();
 
-    public MapperConfig getMapperConfig(String clientName) {
+    default MapperConfig getMapperConfig(String clientName) {
         return MongoClientBeanUtil.isDefault(clientName)
-                ? defaultMapperConfig
-                : mapperConfigs.get(clientName);
+                ? defaultMapperConfig()
+                : mapperConfigs().get(clientName);
     }
 }

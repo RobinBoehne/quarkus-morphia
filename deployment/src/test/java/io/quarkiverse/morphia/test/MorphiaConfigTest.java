@@ -3,7 +3,6 @@ package io.quarkiverse.morphia.test;
 import static java.util.Set.of;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Locale;
@@ -35,8 +34,8 @@ public class MorphiaConfigTest {
                 .filter(name -> !IGNORED_OPTIONS.contains(name))
                 .collect(Collectors.toSet());
 
-        Set<String> fieldNames = Arrays.stream(MapperConfig.class.getDeclaredFields())
-                .map(Field::getName)
+        Set<String> fieldNames = Arrays.stream(MapperConfig.class.getDeclaredMethods())
+                .map(Method::getName)
                 .collect(Collectors.toSet());
 
         mapperNames.forEach(name -> assertTrue(fieldNames.contains(name), "Should find " + name + " in the config type"));

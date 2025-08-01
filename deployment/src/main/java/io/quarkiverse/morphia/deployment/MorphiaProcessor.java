@@ -21,7 +21,6 @@ import org.jboss.jandex.Index;
 import org.jboss.jandex.IndexView;
 import org.jboss.jandex.Indexer;
 import org.jboss.jandex.JarIndexer;
-import org.jetbrains.annotations.NotNull;
 
 import dev.morphia.Datastore;
 import dev.morphia.annotations.AlsoLoad;
@@ -51,6 +50,7 @@ import dev.morphia.annotations.Transient;
 import dev.morphia.annotations.Validation;
 import dev.morphia.annotations.Version;
 import dev.morphia.mapping.codec.references.ReferenceCodec;
+import io.quarkiverse.morphia.DatastoreFactory;
 import io.quarkiverse.morphia.MorphiaConfig;
 import io.quarkiverse.morphia.MorphiaRecorder;
 import io.quarkus.arc.deployment.SyntheticBeanBuildItem;
@@ -93,6 +93,15 @@ public class MorphiaProcessor {
                 .configure(Datastore.class)
                 .scope(ApplicationScoped.class)
                 .supplier(recorder.datastoreSupplier(
+                        clientRecorder.mongoClientSupplier(DEFAULT_MONGOCLIENT_NAME, mongodbConfig), config,
+                        entitiesBuildItem.getNames(), DEFAULT_MONGOCLIENT_NAME))
+                .setRuntimeInit()
+                .done());
+
+        syntheticBeanBuildItemBuildProducer.produce(SyntheticBeanBuildItem
+                .configure(DatastoreFactory.class)
+                .scope(ApplicationScoped.class)
+                .supplier(recorder.datastoreFactorySupplier(
                         clientRecorder.mongoClientSupplier(DEFAULT_MONGOCLIENT_NAME, mongodbConfig), config,
                         entitiesBuildItem.getNames(), DEFAULT_MONGOCLIENT_NAME))
                 .setRuntimeInit()
@@ -164,7 +173,6 @@ public class MorphiaProcessor {
         reflectiveClasses.produce(new ReflectiveClassBuildItem(true, true, Version.class));
     }
 
-    @NotNull
     private Index indexJar() throws IOException {
         URL location = Datastore.class.getProtectionDomain().getCodeSource().getLocation();
         Indexer indexer = new Indexer();
@@ -193,7 +201,6 @@ public class MorphiaProcessor {
                 list.add(info.name().toString());
             });
         }
-
         return new MorphiaEntitiesBuildItem(list);
     }
 
